@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import marketRoutes from './routes/market.routes';
 import exchangeRoutes from './routes/exchange.routes';
+import signalRoutes from './routes/signal.routes';
+import alertRoutes from './routes/alert.routes';
 
 dotenv.config();
 
@@ -30,6 +32,12 @@ app.use('/api/market', marketRoutes);
 // Exchange API
 app.use('/api/exchange', exchangeRoutes);
 
+// Signal API
+app.use('/api/signals', signalRoutes);
+
+// Alert API
+app.use('/api/alerts', alertRoutes);
+
 // Error handling middleware
 app.use((err: any, req: Request, res: Response) => {
   console.error(err);
@@ -41,6 +49,8 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
   console.log(`📊 Market API: GET /api/market/data/:exchange/:symbol`);
   console.log(`💰 Exchange API: GET /api/exchange/balance/:exchange`);
+  console.log(`📈 Signal API: POST /api/signals/generate/:exchange/:symbol`);
+  console.log(`🔔 Alert API: POST /api/alerts/create/:exchange/:symbol`);
 });
 
 export default app;
