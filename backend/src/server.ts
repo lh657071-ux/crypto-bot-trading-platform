@@ -1,10 +1,12 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth.routes';
 import marketRoutes from './routes/market.routes';
 import exchangeRoutes from './routes/exchange.routes';
 import signalRoutes from './routes/signal.routes';
 import alertRoutes from './routes/alert.routes';
+import { authMiddleware } from './middleware/auth.middleware';
 
 dotenv.config();
 
@@ -26,17 +28,14 @@ app.get('/api', (req: Request, res: Response) => {
   res.json({ message: 'Crypto Trading Bot API v1.0.0' });
 });
 
-// Market API
-app.use('/api/market', marketRoutes);
+// Auth Routes (public)
+app.use('/api/auth', authRoutes);
 
-// Exchange API
-app.use('/api/exchange', exchangeRoutes);
-
-// Signal API
-app.use('/api/signals', signalRoutes);
-
-// Alert API
-app.use('/api/alerts', alertRoutes);
+// Protected Routes (require authentication)
+app.use('/api/market', authMiddleware, marketRoutes);
+app.use('/api/exchange', authMiddleware, exchangeRoutes);
+app.use('/api/signals', authMiddleware, signalRoutes);
+app.use('/api/alerts', authMiddleware, alertRoutes);
 
 // Error handling middleware
 app.use((err: any, req: Request, res: Response) => {
@@ -47,6 +46,7 @@ app.use((err: any, req: Request, res: Response) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`🔐 Authentication: POST /api/auth/register | POST /api/auth/login`);
   console.log(`📊 Market API: GET /api/market/data/:exchange/:symbol`);
   console.log(`💰 Exchange API: GET /api/exchange/balance/:exchange`);
   console.log(`📈 Signal API: POST /api/signals/generate/:exchange/:symbol`);
