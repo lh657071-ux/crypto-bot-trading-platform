@@ -1,56 +1,48 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import marketRoutes from './routes/market.routes';
-import exchangeRoutes from './routes/exchange.routes';
-import signalRoutes from './routes/signal.routes';
-import alertRoutes from './routes/alert.routes';
+import apiRoutes from './routes/api';
 
 dotenv.config();
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: '*', // Public visibility - accessible from anywhere
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  credentials: true
+}));
 
-// Health check
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
-// API Routes
-app.get('/api', (req: Request, res: Response) => {
-  res.json({ message: 'Crypto Trading Bot API v1.0.0' });
-});
+// API routes
+app.use('/api', apiRoutes);
 
-// Market API
-app.use('/api/market', marketRoutes);
-
-// Exchange API
-app.use('/api/exchange', exchangeRoutes);
-
-// Signal API
-app.use('/api/signals', signalRoutes);
-
-// Alert API
-app.use('/api/alerts', alertRoutes);
-
-// Error handling middleware
-app.use((err: any, req: Request, res: Response) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: 'Route not found' });
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
-  console.log(`📊 Market API: GET /api/market/data/:exchange/:symbol`);
-  console.log(`💰 Exchange API: GET /api/exchange/balance/:exchange`);
-  console.log(`📈 Signal API: POST /api/signals/generate/:exchange/:symbol`);
-  console.log(`🔔 Alert API: POST /api/alerts/create/:exchange/:symbol`);
+app.listen(PORT, HOST as any, () => {
+  console.log(`🚀 Server running at http://${HOST}:${PORT}`);
+  console.log(`📡 CORS enabled for public access (port ${PORT})`);
+  console.log(`✅ Health check: http://${HOST}:${PORT}/health`);
+  console.log(`✅ API routes: http://${HOST}:${PORT}/api`);
 });
 
 export default app;
