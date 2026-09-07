@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Trading Bot Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            background: #10b981;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-badge.error {
+            background: #ef4444;
+        }
+
+        .api-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .signals-section, .trades-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .signal-item {
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            background: #f9fafb;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .signal-item.buy {
+            border-left-color: #10b981;
+        }
+
+        .signal-item.sell {
+            border-left-color: #ef4444;
+        }
+
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .signal-symbol {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .signal-action {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .signal-action.buy {
+            background: #10b981;
+        }
+
+        .signal-action.sell {
+            background: #ef4444;
+        }
+
+        .signal-action.hold {
+            background: #f59e0b;
+        }
+
+        .signal-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .detail-label {
+            color: #999;
+        }
+
+        .detail-value {
+            font-weight: bold;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th {
+            background: #f3f4f6;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            color: #666;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .profit {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .loss {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #10b981;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .config-form {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Crypto Trading Bot Dashboard</h1>
+            <div id="statusContainer">
+                <div class="status-badge" id="connectionStatus">Checking...</div>
+            </div>
+            <div class="api-info" id="apiInfo">API: http://localhost:5000/api</div>
+        </header>
+
+        <!-- Error/Success Messages -->
+        <div id="messageContainer"></div>
+
+        <!-- Dashboard Cards -->
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-title">📊 Bot Status</div>
+                <div class="card-value" id="botStatus">--</div>
+                <div class="card-subtitle">Current state</div>
+            </div>
+            <div class="card">
+                <div class="card-title">⏱️ Uptime</div>
+                <div class="card-value" id="uptime">--</div>
+                <div class="card-subtitle">Seconds running</div>
+            </div>
+            <div class="card">
+                <div class="card-title">📈 Active Positions</div>
+                <div class="card-value" id="positions">--</div>
+                <div class="card-subtitle">Open trades</div>
+            </div>
+            <div class="card">
+                <div class="card-title">💰 Total Profit</div>
+                <div class="card-value" id="profit">--</div>
+                <div class="card-subtitle">USD</div>
+            </div>
+            <div class="card">
+                <div class="card-title">🎯 Win Rate</div>
+                <div class="card-value" id="winrate">--</div>
+                <div class="card-subtitle">Success rate</div>
+            </div>
+            <div class="card">
+                <div class="card-title">⚙️ Max Positions</div>
+                <div class="card-value" id="maxPos">--</div>
+                <div class="card-subtitle">Configuration</div>
+            </div>
+        </div>
+
+        <!-- Trading Signals -->
+        <div class="signals-section">
+            <div class="section-title">📡 Trading Signals</div>
+            <div id="signalsContainer" class="loading">
+                <div class="spinner"></div>
+                <p>Loading signals...</p>
+            </div>
+        </div>
+
+        <!-- Bot Configuration -->
+        <div class="signals-section">
+            <div class="section-title">⚙️ Bot Configuration</div>
+            <div id="configContainer" class="loading">
+                <div class="spinner"></div>
+                <p>Loading config...</p>
+            </div>
+        </div>
+
+        <!-- Execute Trade -->
+        <div class="signals-section">
+            <div class="section-title">💱 Execute Trade</div>
+            <div class="config-form">
+                <div class="form-group">
+                    <label for="tradeSymbol">Trading Pair</label>
+                    <select id="tradeSymbol">
+                        <option value="BTC/USDT">BTC/USDT</option>
+                        <option value="ETH/USDT">ETH/USDT</option>
+                        <option value="BNB/USDT">BNB/USDT</option>
+                        <option value="ADA/USDT">ADA/USDT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tradeAction">Action</label>
+                    <select id="tradeAction">
+                        <option value="BUY">BUY</option>
+                        <option value="SELL">SELL</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tradeAmount">Amount</label>
+                    <input type="number" id="tradeAmount" placeholder="0.01" min="0.001" step="0.001">
+                </div>
+                <button class="btn" onclick="executeTrade()">Execute Trade</button>
+            </div>
+            <div id="tradeResult"></div>
+        </div>
+
+        <!-- Trade History -->
+        <div class="trades-section">
+            <div class="section-title">📜 Trade History</div>
+            <div id="tradesContainer" class="loading">
+                <div class="spinner"></div>
+                <p>Loading trades...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api';
+
+        // Format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(value);
+        }
+
+        // Format percentage
+        function formatPercent(value) {
+            return (value * 100).toFixed(2) + '%';
+        }
+
+        // Show message
+        function showMessage(message, type = 'success') {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type}-message`;
+            messageDiv.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(messageDiv);
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Check connection and load data
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
+                const data = await response.json();
+                document.getElementById('connectionStatus').textContent = '🟢 Connected';
+                document.getElementById('connectionStatus').classList.remove('error');
+                loadAllData();
+            } catch (error) {
+                document.getElementById('connectionStatus').textContent = '🔴 Disconnected';
+                document.getElementById('connectionStatus').classList.add('error');
+                console.error('Connection error:', error);
+            }
+        }
+
+        // Load bot status
+        async function loadBotStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/bot/status`);
+                const data = await response.json();
+                if (data.success) {
+                    const status = data.data;
+                    document.getElementById('botStatus').textContent = status.status;
+                    document.getElementById('uptime').textContent = status.uptime.toLocaleString();
+                    document.getElementById('positions').textContent = status.activePositions;
+                    document.getElementById('profit').textContent = formatCurrency(status.totalProfit);
+                    document.getElementById('winrate').textContent = formatPercent(status.winRate);
+                }
+            } catch (error) {
+                console.error('Error loading bot status:', error);
+            }
+        }
+
+        // Load trading signals
+        async function loadSignals() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/signals`);
+                const data = await response.json();
+                if (data.success && data.data.length > 0) {
+                    const signalsContainer = document.getElementById('signalsContainer');
+                    signalsContainer.innerHTML = '';
+                    data.data.forEach(signal => {
+                        const signalDiv = document.createElement('div');
+                        signalDiv.className = `signal-item ${signal.action.toLowerCase()}`;
+                        signalDiv.innerHTML = `
+                            <div class="signal-header">
+                                <span class="signal-symbol">${signal.symbol}</span>
+                                <span class="signal-action ${signal.action.toLowerCase()}">${signal.action}</span>
+                            </div>
+                            <div class="signal-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Confidence:</span>
+                                    <span class="detail-value">${formatPercent(signal.confidence)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Price:</span>
+                                    <span class="detail-value">${formatCurrency(signal.price)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Strength:</span>
+                                    <span class="detail-value">${signal.strength}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Time:</span>
+                                    <span class="detail-value">${new Date(signal.timestamp).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        `;
+                        signalsContainer.appendChild(signalDiv);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading signals:', error);
+                document.getElementById('signalsContainer').innerHTML = '<div class="error-message">Failed to load signals</div>';
+            }
+        }
+
+        // Load bot configuration
+        async function loadConfig() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/bot/config`);
+                const data = await response.json();
+                if (data.success) {
+                    const config = data.data;
+                    document.getElementById('maxPos').textContent = config.maxPositions;
+                    const configContainer = document.getElementById('configContainer');
+                    configContainer.innerHTML = `
+                        <table>
+                            <tr>
+                                <th>Setting</th>
+                                <th>Value</th>
+                            </tr>
+                            <tr>
+                                <td>Max Positions</td>
+                                <td>${config.maxPositions}</td>
+                            </tr>
+                            <tr>
+                                <td>Risk Limit</td>
+                                <td>${formatPercent(config.riskLimit)}</td>
+                            </tr>
+                            <tr>
+                                <td>Update Interval</td>
+                                <td>${config.updateInterval}ms</td>
+                            </tr>
+                            <tr>
+                                <td>Auto Trade</td>
+                                <td>${config.autoTrade ? '✅ Enabled' : '❌ Disabled'}</td>
+                            </tr>
+                            <tr>
+                                <td>Signal Threshold</td>
+                                <td>${formatPercent(config.signalThreshold)}</td>
+                            </tr>
+                            <tr>
+                                <td>Trading Pairs</td>
+                                <td>${config.tradingPairs.join(', ')}</td>
+                            </tr>
+                        </table>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading config:', error);
+                document.getElementById('configContainer').innerHTML = '<div class="error-message">Failed to load configuration</div>';
+            }
+        }
+
+        // Load trade history
+        async function loadTrades() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/bot/trades?limit=10`);
+                const data = await response.json();
+                if (data.success && data.data.length > 0) {
+                    const tradesContainer = document.getElementById('tradesContainer');
+                    tradesContainer.innerHTML = `
+                        <table>
+                            <tr>
+                                <th>Trade ID</th>
+                                <th>Pair</th>
+                                <th>Action</th>
+                                <th>Amount</th>
+                                <th>Entry Price</th>
+                                <th>Exit Price</th>
+                                <th>Profit/Loss</th>
+                                <th>Status</th>
+                            </tr>
+                            ${data.data.map(trade => `
+                                <tr>
+                                    <td>${trade.tradeId}</td>
+                                    <td>${trade.symbol}</td>
+                                    <td>${trade.action}</td>
+                                    <td>${trade.amount}</td>
+                                    <td>${formatCurrency(trade.entryPrice)}</td>
+                                    <td>${formatCurrency(trade.exitPrice)}</td>
+                                    <td class="${trade.profit >= 0 ? 'profit' : 'loss'}">${formatCurrency(trade.profit)}</td>
+                                    <td>${trade.status}</td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading trades:', error);
+                document.getElementById('tradesContainer').innerHTML = '<div class="error-message">Failed to load trade history</div>';
+            }
+        }
+
+        // Execute trade
+        async function executeTrade() {
+            const symbol = document.getElementById('tradeSymbol').value;
+            const action = document.getElementById('tradeAction').value;
+            const amount = document.getElementById('tradeAmount').value;
+
+            if (!amount || amount <= 0) {
+                showMessage('Please enter a valid amount', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/bot/trade`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol, action, amount: parseFloat(amount) })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showMessage(`Trade executed: ${action} ${amount} ${symbol}`, 'success');
+                    document.getElementById('tradeAmount').value = '';
+                    loadTrades();
+                } else {
+                    showMessage('Failed to execute trade', 'error');
+                }
+            } catch (error) {
+                showMessage('Error executing trade: ' + error.message, 'error');
+            }
+        }
+
+        // Load all data
+        function loadAllData() {
+            loadBotStatus();
+            loadSignals();
+            loadConfig();
+            loadTrades();
+        }
+
+        // Initial connection check
+        checkConnection();
+
+        // Refresh data every 10 seconds
+        setInterval(loadAllData, 10000);
+    </script>
+</body>
+</html>
