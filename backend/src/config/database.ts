@@ -5,14 +5,14 @@ dotenv.config();
 
 const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'crypto_bot',
-});
+    password: process.env.DB_PASSWORD || 'password',
+      host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '5432'),
+          database: process.env.DB_NAME || 'crypto_bot',
+          });
 
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-});
+          pool.on('error', (err: Error) => {
+            console.error('Unexpected error on idle client', err);
+            });
 
-export default pool;
+            export default pool;

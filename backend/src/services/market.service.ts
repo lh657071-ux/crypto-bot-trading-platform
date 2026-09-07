@@ -1,6 +1,6 @@
 import ccxt from 'ccxt';
 import axios from 'axios';
-import { TradingSignal, TechnicalIndicators } from '../../shared/types/trading';
+import { TradingSignal, TechnicalIndicators } from '../types';
 
 export interface MarketData {
   symbol: string;

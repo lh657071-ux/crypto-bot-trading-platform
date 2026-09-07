@@ -1,4 +1,3 @@
-// User Types
 export interface User {
   id: string;
   email: string;
@@ -7,27 +6,27 @@ export interface User {
   updatedAt: Date;
 }
 
-// Trading Signal Types
 export type TradingSignal = 'BUY' | 'SELL' | 'HOLD';
+
+export interface TechnicalIndicators {
+  supertrend: number;
+  ma20: number;
+  ma50: number;
+  stochRSI: number;
+  kdj: number;
+  obv: number;
+  macd: number;
+}
 
 export interface Signal {
   id: string;
   symbol: string;
   signal: TradingSignal;
   timestamp: Date;
-  indicators: {
-    supertrend: number;
-    ma20: number;
-    ma50: number;
-    stochRSI: number;
-    kdj: number;
-    obv: number;
-    macd: number;
-  };
+  indicators: TechnicalIndicators;
 }
 
-// Trading Bot Types
-export type TradingMode = 
+export type TradingMode =
   | 'AUTO_GRID'
   | 'AUTO_GRID_FUTURES'
   | 'FUTURES_GRID'
@@ -47,7 +46,6 @@ export interface BotConfig {
   updatedAt: Date;
 }
 
-// API Response Types
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

@@ -1,0 +1,17 @@
+{
+  "name": "crypto-bot-trading-platform",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend",
+      "visibility": "public",
+      "onAutoForward": "notify"
+    },
+    "5000": {
+      "label": "Backend API",
+      "visibility": "public",
+      "onAutoForward": "notify"
+    }
+  },
+  "forwardPorts": [3000, 5000]
+}

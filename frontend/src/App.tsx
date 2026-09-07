@@ -1,23 +1,39 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-function Dashboard() {
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-4">Crypto Trading Bot</h1>
-      <p className="text-gray-300">Welcome to your trading dashboard. Coming soon...</p>
-    </div>
-  );
-}
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import Bots from './pages/Bots';
+import BotDetail from './pages/BotDetail';
+import ExchangeKeys from './pages/ExchangeKeys';
+import Orders from './pages/Orders';
 
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-900 text-white">
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          <Route
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/bots" element={<Bots />} />
+            <Route path="/bots/:id" element={<BotDetail />} />
+            <Route path="/exchange-keys" element={<ExchangeKeys />} />
+            <Route path="/orders" element={<Orders />} />
+          </Route>
         </Routes>
-      </div>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
