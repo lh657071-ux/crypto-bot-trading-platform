@@ -20,19 +20,23 @@ export interface Order {
   remaining: number;
 }
 
+export interface ExchangeCredentials {
+  apiKey?: string;
+  secret?: string;
+  passphrase?: string;
+  sandbox?: boolean;
+}
+
 export class ExchangeService {
   private exchange: any;
   private exchangeName: string;
 
-  constructor(exchangeName: string = 'binance') {
+  constructor(exchangeName: string = 'binance', credentials?: ExchangeCredentials) {
     this.exchangeName = exchangeName.toLowerCase();
-    this.initializeExchange();
+    this.initializeExchange(credentials);
   }
 
-  /**
-   * Initialize exchange connection
-   */
-  private initializeExchange() {
+  private initializeExchange(credentials?: ExchangeCredentials) {
     try {
       const ExchangeClass = (ccxt as any)[this.exchangeName];
       if (!ExchangeClass) {
@@ -40,22 +44,24 @@ export class ExchangeService {
       }
 
       this.exchange = new ExchangeClass({
-        apiKey: process.env[`${this.exchangeName.toUpperCase()}_API_KEY`],
-        secret: process.env[`${this.exchangeName.toUpperCase()}_API_SECRET`],
+        apiKey: credentials?.apiKey || process.env[`${this.exchangeName.toUpperCase()}_API_KEY`],
+        secret: credentials?.secret || process.env[`${this.exchangeName.toUpperCase()}_API_SECRET`],
+        password: credentials?.passphrase,
         enableRateLimit: true,
         options: {
           defaultType: 'spot',
         },
       });
+
+      if (credentials?.sandbox && typeof this.exchange.setSandboxMode === 'function') {
+        this.exchange.setSandboxMode(true);
+      }
     } catch (error) {
       console.error(`Error initializing ${this.exchangeName}:`, error);
       throw error;
     }
   }
 
-  /**
-   * Get wallet balance
-   */
   async getBalance(): Promise<WalletBalance[]> {
     try {
       const balance = await this.exchange.fetchBalance();
@@ -79,9 +85,6 @@ export class ExchangeService {
     }
   }
 
-  /**
-   * Get specific currency balance
-   */
   async getCurrencyBalance(currency: string): Promise<WalletBalance | null> {
     try {
       const balance = await this.exchange.fetchBalance();
@@ -103,9 +106,6 @@ export class ExchangeService {
     }
   }
 
-  /**
-   * Create limit order
-   */
   async createLimitOrder(
     symbol: string,
     side: 'buy' | 'sell',
@@ -129,13 +129,10 @@ export class ExchangeService {
       };
     } catch (error) {
       console.error('Error creating limit order:', error);
-      return null;
+      throw error;
     }
   }
 
-  /**
-   * Create market order
-   */
   async createMarketOrder(
     symbol: string,
     side: 'buy' | 'sell',
@@ -158,13 +155,10 @@ export class ExchangeService {
       };
     } catch (error) {
       console.error('Error creating market order:', error);
-      return null;
+      throw error;
     }
   }
 
-  /**
-   * Cancel order
-   */
   async cancelOrder(orderId: string, symbol: string): Promise<boolean> {
     try {
       await this.exchange.cancelOrder(orderId, symbol);
@@ -175,9 +169,6 @@ export class ExchangeService {
     }
   }
 
-  /**
-   * Get order status
-   */
   async getOrderStatus(orderId: string, symbol: string): Promise<Order | null> {
     try {
       const order = await this.exchange.fetchOrder(orderId, symbol);
@@ -200,9 +191,6 @@ export class ExchangeService {
     }
   }
 
-  /**
-   * Get open orders
-   */
   async getOpenOrders(symbol?: string): Promise<Order[]> {
     try {
       const orders = await this.exchange.fetchOpenOrders(symbol);
@@ -225,9 +213,6 @@ export class ExchangeService {
     }
   }
 
-  /**
-   * Get closed orders
-   */
   async getClosedOrders(symbol?: string, limit: number = 50): Promise<Order[]> {
     try {
       const orders = await this.exchange.fetchClosedOrders(symbol, undefined, limit);
@@ -250,9 +235,6 @@ export class ExchangeService {
     }
   }
 
-  /**
-   * Get supported exchanges
-   */
   static getSupportedExchanges(): string[] {
     return [
       'binance',

@@ -23,21 +23,19 @@ export interface Order {
 }
 
 export class OrderRepository {
-  /**
-   * Create order
-   */
   async create(userId: string, data: Partial<Order>): Promise<Order | null> {
     try {
       const query = `
         INSERT INTO orders (
-          user_id, bot_id, symbol, order_type, order_side,
+          user_id, bot_id, exchange_order_id, symbol, order_type, order_side,
           price, amount, filled, remaining, total_cost, fee, signal_id, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING *
       `;
       const result = await pool.query(query, [
         userId,
         data.bot_id,
+        data.exchange_order_id,
         data.symbol,
         data.order_type,
         data.order_side,
@@ -57,9 +55,6 @@ export class OrderRepository {
     }
   }
 
-  /**
-   * Find by ID
-   */
   async findById(id: string): Promise<Order | null> {
     try {
       const query = 'SELECT * FROM orders WHERE id = $1';
@@ -71,9 +66,6 @@ export class OrderRepository {
     }
   }
 
-  /**
-   * Find by user
-   */
   async findByUser(userId: string, limit: number = 50): Promise<Order[]> {
     try {
       const query = `
@@ -90,9 +82,6 @@ export class OrderRepository {
     }
   }
 
-  /**
-   * Find by bot
-   */
   async findByBot(botId: string): Promise<Order[]> {
     try {
       const query = `
@@ -108,9 +97,6 @@ export class OrderRepository {
     }
   }
 
-  /**
-   * Update order
-   */
   async update(id: string, updates: Partial<Order>): Promise<Order | null> {
     try {
       const fields = Object.keys(updates)
